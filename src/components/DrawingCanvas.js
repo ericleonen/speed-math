@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { drawLine } from "../utils/drawing";
 
 const DrawingCanvas = () => {
     const [draw, setDraw] = useState(false);
@@ -7,28 +8,23 @@ const DrawingCanvas = () => {
     const [touchDraw, setTouchDraw] = useState(false);
     const [prevTouch, setPrevTouch] = useState(null);
 
+    const [context, setContext] = useState();
+    const [origin, setOrigin] = useState([]);
+
     const canvasRef = useRef(null);
 
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const canvasRect = canvas.getBoundingClientRect();
+
+        setOrigin([canvasRect.left, canvasRect.top]);
+        setContext(canvas.getContext("2d"));
+    }, [canvasRef, setOrigin, setContext]);
+
     const onTouchDraw = ({touches}) => {
-        if (touchDraw) {
-            const canvas = canvasRef.current;
-            const canvasRect = canvas.getBoundingClientRect();
-            const origin = [canvasRect.left, canvasRect.top];
-
-            const { clientX, clientY } = touches[0];
-
-            if (prevTouch) {
-                const context = canvas.getContext("2d");
-                
-                context.moveTo(prevTouch[0], prevTouch[1]);
-                context.lineTo(clientX - origin[0], clientY - origin[1]);
-                context.lineWidth = 5;
-                context.stroke();
-                context.closePath();
-            }
-
-            setPrevTouch([clientX - origin[0], clientY - origin[1]]);
-        }
+        const { clientX, clientY } = touches[0];
+        drawLine(context, prevTouch, [clientX, clientY], origin);
+        setPrevTouch([clientX - origin[0], clientY - origin[1]]);
     };
 
     const startTouchDraw = () => {
@@ -36,33 +32,42 @@ const DrawingCanvas = () => {
     }
 
     const endTouchDraw = () => {
-        setTouchDraw(false);
-        setPrevTouch(null);
+        if (touchDraw) {
+            setTouchDraw(false);
+            setPrevTouch(null);
+    
+            logImageData();
+        }
     }
 
     const onDraw = ({clientX, clientY}) => {
         if (draw) {
-            const canvas = canvasRef.current;
-            const canvasRect = canvas.getBoundingClientRect();
-            const origin = [canvasRect.left, canvasRect.top];
-
-            if (prevLoc) {
-                const context = canvas.getContext("2d");
-        
-                context.moveTo(prevLoc[0], prevLoc[1]);
-                context.lineTo(clientX - origin[0], clientY - origin[1]);
-                context.lineWidth = 5;
-                context.stroke();
-                context.closePath();
-            }
-    
+            drawLine(context, prevLoc, [clientX, clientY], origin);
             setPrevLoc([clientX - origin[0], clientY - origin[1]]);
         }
     };
 
     const endDraw = () => {
-        setDraw(false);
-        setPrevLoc(null);
+        if (draw) {
+            setDraw(false);
+            setPrevLoc(null);
+    
+            logImageData();
+        }
+    };
+
+    const logImageData = () => {
+        const canvas = canvasRef.current;
+        const context = canvas.getContext("2d");
+
+        const allData = context.getImageData(0, 0, canvas.width, canvas.height).data;
+        const alphaData = [];
+
+        for (let i = 3; i <= allData.length; i += 4) {
+            alphaData.push(allData[i] / 255);
+        }
+        
+        console.log(alphaData);
     };
 
     const startDraw = () => {
@@ -72,7 +77,6 @@ const DrawingCanvas = () => {
     const clearDraw = () => {
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
-
         context.reset();
     }
 
