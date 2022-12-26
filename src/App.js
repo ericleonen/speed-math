@@ -1,7 +1,10 @@
+import "./App.css";
+import DrawingCanvas from "./components/DrawingCanvas";
+
 const App = () => {
   return (
-    <div>
-      
+    <div className="flex items-center justify-center">
+      <DrawingCanvas />
     </div>
   );
 };
