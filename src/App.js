@@ -3,7 +3,7 @@ import DrawingCanvas from "./components/DrawingCanvas";
 
 const App = () => {
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex w-screen h-screen items-center justify-center">
       <DrawingCanvas />
     </div>
   );
