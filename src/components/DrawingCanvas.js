@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { drawLine } from "../utils/drawing";
 
@@ -19,7 +20,7 @@ const DrawingCanvas = () => {
 
         setOrigin([canvasRect.left, canvasRect.top]);
         setContext(canvas.getContext("2d"));
-    }, [canvasRef, setOrigin, setContext]);
+    }, [canvasRef, setOrigin, setContext, draw, touchDraw]);
 
     const onTouchDraw = ({touches}) => {
         const { clientX, clientY } = touches[0];
@@ -58,16 +59,10 @@ const DrawingCanvas = () => {
 
     const logImageData = () => {
         const canvas = canvasRef.current;
-        const context = canvas.getContext("2d");
-
-        const allData = context.getImageData(0, 0, canvas.width, canvas.height).data;
-        const alphaData = [];
-
-        for (let i = 3; i <= allData.length; i += 4) {
-            alphaData.push(allData[i] / 255);
-        }
         
-        console.log(alphaData);
+        axios.get(`http://localhost:5000/readImage/?data=${canvas.toDataURL()}`)
+            .then(res => console.log(res))
+            .catch(err => console.log(err))
     };
 
     const startDraw = () => {
@@ -86,7 +81,7 @@ const DrawingCanvas = () => {
                 ref={canvasRef}
                 width="300"
                 height="300"
-                className="border-4 border-gray-400 bg-white"
+                className="bg-white border-4 border-gray-400"
                 onMouseDown={startDraw}
                 onMouseUp={endDraw}
                 onMouseMove={onDraw}
@@ -99,7 +94,7 @@ const DrawingCanvas = () => {
             <div className="mt-2 w-min rounded-sm overflow-hidden shadow-md border-[3px] border-gray-500">
                 <button 
                     onClick={clearDraw}
-                    className="bg-gray-400/80 text-white border-2 border-white px-10 py-1 text-4xl active:bg-gray-400"
+                    className="px-10 py-1 text-4xl text-white border-2 border-white bg-gray-400/80 active:bg-gray-400"
                 >
                     Erase
                 </button>
