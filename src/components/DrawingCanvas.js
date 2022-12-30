@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { drawLine } from "../utils/drawing";
+import { drawLine, loadCanvasImage } from "../utils/drawing";
 
 const DrawingCanvas = () => {
     const [draw, setDraw] = useState(false);
@@ -57,12 +57,27 @@ const DrawingCanvas = () => {
         }
     };
 
-    const logImageData = () => {
+    const logImageData = async () => {
         const canvas = canvasRef.current;
+        const dataURL = canvas.toDataURL("image/png", 0.1);
+
+        axios.post("http://localhost:5000/predict", {
+            dataURL
+        });
+
+        // axios.post("http://localhost:5000/predict", );
+
+        // const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         
-        axios.get(`http://localhost:5000/readImage/?data=${canvas.toDataURL()}`)
-            .then(res => console.log(res))
-            .catch(err => console.log(err))
+        // let image = tf.browser.fromPixels(imageData);
+        // image = tf.image.resizeBilinear(image, [28, 28])
+        //     .sum(2)
+        //     .expandDims(0)
+        //     .expandDims(-1);
+
+        // const pred = model.predict(image);
+
+        // console.log(pred.argMax(1).dataSync());
     };
 
     const startDraw = () => {
@@ -79,9 +94,9 @@ const DrawingCanvas = () => {
         <div className="flex flex-col items-center p-2 bg-gray-300">
             <canvas 
                 ref={canvasRef}
-                width="300"
-                height="300"
-                className="bg-white border-4 border-gray-400"
+                width="28"
+                height="28"
+                className="h-[300px] w-[300px] bg-white border-4 border-gray-400"
                 onMouseDown={startDraw}
                 onMouseUp={endDraw}
                 onMouseMove={onDraw}
