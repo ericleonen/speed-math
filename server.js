@@ -6,7 +6,7 @@ const tf = require("@tensorflow/tfjs");
 const tfn = require("@tensorflow/tfjs-node")
 const handler = tfn.io.fileSystem("./models/model.json");
 const fs = require('fs');
-
+const { generateMathProblem, segmentAndPredict } = require("./utils")
 
 const model = tf.loadLayersModel(handler);
 
@@ -17,18 +17,22 @@ app.use(cors({
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.post("/predict", async (req, res) => {
-    const data = req.body.dataURL.split(",")[1];
-    const buffer = Buffer.from(data, 'base64');
-    
-    let img = tfn.node.decodeImage(buffer);
-    img = tf.image.sum(2)
-        .expandDims(0)
-        .expandDims(-1);
+app.get("/mathProblems/:n", (req, res) => {
+    const n = parseInt(req.params.n);
+    const problems = [];
 
-    model.then(predictor => {
-        const pred = predictor.predict(img);
-        console.log(pred.argMax(1).dataSync());
+    for (let i = 0; i < n; i++) {
+        problems.push(generateMathProblem());
+    }
+
+    res.send(problems);
+});
+
+app.post("/predict", async (req, res) => {
+    model.then(async (m) => {
+        res.send({
+            pred: await segmentAndPredict(m, req.body.dataURL)
+        });
     });
 });
 

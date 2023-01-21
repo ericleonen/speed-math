@@ -29,7 +29,13 @@ model = keras.Sequential([
 model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
 # train the model
-model.fit(train_input, train_label, validation_data=(test_input, test_label), epochs=1)
+model.fit(
+    train_input, 
+    train_label, 
+    validation_data=(test_input, test_label), 
+    epochs=5,
+    batch_size=64
+)
 test_loss, test_acc = model.evaluate(test_input, test_label)
 print("Test accuracy: ", test_acc)
 

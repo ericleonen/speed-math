@@ -1,8 +1,9 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { drawLine, loadCanvasImage } from "../utils/drawing";
+import { drawLine } from "../utils/drawing";
+import EraseButton from "./EraseButton";
 
-const DrawingCanvas = () => {
+const DrawingCanvas = ({ setCurrentProblem, setCurrentGuess, currentAnswer }) => {
     const [draw, setDraw] = useState(false);
     const [prevLoc, setPrevLoc] = useState(null);
 
@@ -22,81 +23,75 @@ const DrawingCanvas = () => {
         setContext(canvas.getContext("2d"));
     }, [canvasRef, setOrigin, setContext, draw, touchDraw]);
 
-    const onTouchDraw = ({touches}) => {
-        const { clientX, clientY } = touches[0];
-        drawLine(context, prevTouch, [clientX, clientY], origin);
-        setPrevTouch([clientX - origin[0], clientY - origin[1]]);
-    };
-
+    // handle touch draw
     const startTouchDraw = () => {
         setTouchDraw(true);
     }
-
+    const onTouchDraw = ({touches}) => {
+        if (touchDraw) {
+            const { clientX, clientY } = touches[0];
+            drawLine(context, prevTouch, [clientX, clientY], origin);
+            setPrevTouch([clientX - origin[0], clientY - origin[1]]);
+        }
+    };
     const endTouchDraw = () => {
         if (touchDraw) {
             setTouchDraw(false);
             setPrevTouch(null);
     
-            logImageData();
+            predict();
         }
     }
 
+    // handle mouse draw
+    const startDraw = () => {
+        setDraw(true);
+    };
     const onDraw = ({clientX, clientY}) => {
         if (draw) {
             drawLine(context, prevLoc, [clientX, clientY], origin);
             setPrevLoc([clientX - origin[0], clientY - origin[1]]);
         }
     };
-
     const endDraw = () => {
         if (draw) {
             setDraw(false);
             setPrevLoc(null);
     
-            logImageData();
+            predict();
         }
     };
 
-    const logImageData = async () => {
+    const predict = async () => {
         const canvas = canvasRef.current;
-        const dataURL = canvas.toDataURL("image/png", 0.1);
+        const dataURL = canvas.toDataURL();
 
-        axios.post("http://localhost:5000/predict", {
-            dataURL
-        });
+        axios
+            .post("http://localhost:5000/predict", {
+                dataURL
+            })
+            .then(res => {
+                setCurrentGuess(res.data.pred);
 
-        // axios.post("http://localhost:5000/predict", );
-
-        // const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        
-        // let image = tf.browser.fromPixels(imageData);
-        // image = tf.image.resizeBilinear(image, [28, 28])
-        //     .sum(2)
-        //     .expandDims(0)
-        //     .expandDims(-1);
-
-        // const pred = model.predict(image);
-
-        // console.log(pred.argMax(1).dataSync());
-    };
-
-    const startDraw = () => {
-        setDraw(true);
+                if (currentAnswer === res.data.pred) {
+                    clearDraw();
+                    setCurrentProblem(prev => prev + 1);
+                }
+            });
     };
 
     const clearDraw = () => {
-        const canvas = canvasRef.current;
-        const context = canvas.getContext("2d");
         context.reset();
-    }
+        setCurrentGuess(-1);
+    };
 
     return (
-        <div className="flex flex-col items-center p-2 bg-gray-300">
+        <div className="flex flex-col">
             <canvas 
                 ref={canvasRef}
-                width="28"
-                height="28"
-                className="h-[300px] w-[300px] bg-white border-4 border-gray-400"
+                width="300"
+                height="300"
+                className="bg-white border-8 border-gray-300 touch-none rounded-xl"
                 onMouseDown={startDraw}
                 onMouseUp={endDraw}
                 onMouseMove={onDraw}
@@ -106,14 +101,7 @@ const DrawingCanvas = () => {
                 onTouchEnd={endTouchDraw}
                 onTouchMove={onTouchDraw}
             />
-            <div className="mt-2 w-min rounded-sm overflow-hidden shadow-md border-[3px] border-gray-500">
-                <button 
-                    onClick={clearDraw}
-                    className="px-10 py-1 text-4xl text-white border-2 border-white bg-gray-400/80 active:bg-gray-400"
-                >
-                    Erase
-                </button>
-            </div>
+            <EraseButton clearDraw={clearDraw} />
         </div>
     );
 };

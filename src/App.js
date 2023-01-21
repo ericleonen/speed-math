@@ -1,10 +1,10 @@
 import "./App.css";
-import DrawingCanvas from "./components/DrawingCanvas";
+import Game from "./components/Game";
 
 const App = () => {
   return (
-    <div className="flex w-screen h-screen items-center justify-center">
-      <DrawingCanvas />
+    <div className="flex flex-col items-center justify-center w-screen h-screen bg-gray-100">
+      <Game />
     </div>
   );
 };
