@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/speed-math/static/css/main.06313a4e.css",
+    "main.js": "/speed-math/static/js/main.50131f4b.js",
+    "static/js/787.fbb2cbe1.chunk.js": "/speed-math/static/js/787.fbb2cbe1.chunk.js",
+    "index.html": "/speed-math/index.html",
+    "main.06313a4e.css.map": "/speed-math/static/css/main.06313a4e.css.map",
+    "main.50131f4b.js.map": "/speed-math/static/js/main.50131f4b.js.map",
+    "787.fbb2cbe1.chunk.js.map": "/speed-math/static/js/787.fbb2cbe1.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.06313a4e.css",
+    "static/js/main.50131f4b.js"
+  ]
+}
